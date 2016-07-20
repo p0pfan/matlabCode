@@ -19,7 +19,7 @@ T(1)=4.6091;
 dt=1;
 
 Time=100;
-ParticleNum=1000;
+ParticleNum=100;
 
 x_N = 0.00001; % the cov of process noise
 x_N_1=0.00001;
@@ -64,6 +64,9 @@ test(:,1)=x(:,1);
 z_error(:,1)=x(:,1);
 est_error=zeros(2,Time);
 
+store_X_p1=zeros(Time,ParticleNum);
+new_x_est=zeros(2,Time);
+new_x_est(1,1)=x(1,1);
 for t = 2:Time
     
     k=k0*exp(-Ea/(x(2,t-1)*Tr));
@@ -102,19 +105,53 @@ for t = 2:Time
     P_w2 = P_w2./sum(P_w2);
     for i = 1 : ParticleNum
         x_P(1,i) = x_P_update1(find(rand <= cumsum(P_w1),1));   
-         x_P(2,i) = x_P_update2(find(rand <= cumsum(P_w2),1)); 
-    end  
+        x_P(2,i) = x_P_update2(find(rand <= cumsum(P_w2),1)); 
+    end
+    store_X_p1(t,:)=x_P(1,:);
     
+    if t==2
+        store_X_p1(1,:)=store_X_p1(2,:);
+    
+    end
+    
+    store_X_p1(t,:)
     x_est1 = mean(x_P(1,:));
     x_est2 = mean(x_P(2,:));
+    
     x_est_out(1,t)=x_est1;
      x_est_out(2,t)=x_est2;
-     est_error(:,t)=abs(x_est_out(:,t)-no_error(:,t));
+     
+    alpha=zeros(2,ParticleNum);
+    beta=zeros(2,ParticleNum);
+    
+    
+    
+    weight_from_model=zeros(1,ParticleNum);
+    for m=2:ParticleNum
+        for ti=2:t
+            alpha(1,m)=alpha(1,m)+(store_X_p1(ti,m)-x(1,ti))^2/x_N;
+
+
+        end
+        beta(1,m)=(store_X_p1(1,m)-store_X_p1(1,m-1)-q/V*(C0-store_X_p1(1,m))+k*store_X_p1(1,m));
+        
+        weight_from_model(1,m)=2/(1+exp(alpha(1,m)+beta(1,m)));
+    end
+    weight_from_model=weight_from_model./sum(weight_from_model);
+    
+%     new_particle(1,particleNum)=zer;
+    for i = 1 : ParticleNum
+        new_particle(1,i) = x_P(1,find(rand <= cumsum(weight_from_model),1));   
+%         x_P(2,i) = x_P_update2(find(rand <= cumsum(P_w2),1)); 
+    end
+    new_x_est(1:t)=mean(new_particle);
+    x_est_out(2,t)=x_est2;
+    est_error(:,t)=abs(x_est_out(:,t)-no_error(:,t));
 end
 t=1:Time;
 figure(1)
 %  ,t,x_est_out(1,1:Time),'.-g'
-plot(t,  test(1,1:Time), '.-b', t, no_error(1,1:Time),'-r',t, z_error(1,1:Time)',t,x_est_out(1,1:Time),'.-g');
+plot(t,  test(1,1:Time), '.-b', t, no_error(1,1:Time),'-r',t, z_error(1,1:Time)',t,x_est_out(1,1:Time),'.-g',t,new_x_est(1,1:Time));
 figure(2)
 plot(t,  test(2,1:Time), '.-b', t, no_error(2,1:Time),'-r',t, z_error(2,1:Time)',t,x_est_out(2,1:Time),'.-g');
 figure(3)
