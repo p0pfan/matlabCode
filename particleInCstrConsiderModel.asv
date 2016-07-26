@@ -70,7 +70,7 @@ new_x_est(1,1)=x(1,1);
 
   alpha=zeros(Time,ParticleNum);
     beta=zeros(Time,ParticleNum);
-    new_weight=zeros(1,ParticleNum);
+    new_weight=zeros(1,ParticelNum);
 for t = 2:Time
     
     k=k0*exp(-Ea/(x(2,t-1)*Tr));
@@ -124,7 +124,7 @@ for t = 2:Time
      for zz=1:ParticleNum
           alpha(t,zz)=alpha(t-1)+(x_est1-store_X_p1(t,zz))^2/x_N;
           beta(t,zz)=(store_X_p1(1,zz)-store_X_p1(1,zz-1)-q/V*(C0-store_X_p1(1,zz))+k*store_X_p1(1,zz));
-          new_weight(1,zz)=2/(1+exp(alpha(t,zz)+beta(t,zz)));
+          new_weight()
      end
     
     
