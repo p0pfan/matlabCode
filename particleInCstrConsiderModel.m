@@ -113,6 +113,16 @@ for t = 2:Time
         x_P(2,i) = x_P_update2(find(rand <= cumsum(P_w2),1)); 
     end
     store_X_p1(t,:)=x_P(1,:);
+    alpha=0;
+    beta=0;
+    for PP=1:ParticleNum
+        
+        for TT=1:t-1
+            alpha=alpha+(x_est_out(1,TT)-x(1,TT))^2/x_R_1;
+        end
+        alpha=alpha+(x_est_out(1,t)-x(1,PP))^2/x_R_1;
+        
+    end
     
    
     x_est1 = mean(x_P(1,:));
@@ -121,27 +131,7 @@ for t = 2:Time
     x_est_out(1,t)=x_est1;
      x_est_out(2,t)=x_est2;
      
-     for zz=1:ParticleNum
-         x_est1-store_X_p1(t,zz)
-          alpha(t,zz)=alpha(t-1,zz)+(x_est1-store_X_p1(t,zz))^2/x_R_1;
-          if zz~=1
-          ttttmmmm=store_X_p1(t,zz-1);
-          else
-              ttttmmmm=store_X_p1(t,zz);
-         end
-         beta(t,zz)= store_X_p1(t,zz)-ttttmmmm-0.01*(7.5-store_X_p1(t,zz))+7.86*10^12*store_X_p1(t,zz)*exp(-140.0/3.5);
-           alpha(t,zz)
-           
-%           beta(t,zz)=(store_X_p1(t,zz)-store_X_p1(t,zz)-q/V*(C0-store_X_p1(t,zz))+k*store_X_p1(1,zz));
-          new_weight(1,zz)=2/(1+exp(alpha(t,zz)+beta(t,zz)));
-     end
-     new_weight(1,:)=new_weight(1,:)./sum(new_weight(1,:));
-    for i = 1 : ParticleNum
-       eee(i)= x_P(find(rand <= cumsum(new_weight(1,:)),1));
-    end
-  ttttt=mean(eee)
-    new_x_est(1:t)=mean(eee);
-    x_est_out(2,t)=x_est2;
+
     est_error(:,t)=abs(x_est_out(:,t)-no_error(:,t));
 end
 t=1:Time;
