@@ -70,7 +70,7 @@ new_x_est(1,1)=x(1,1);
 
   alpha=zeros(Time,ParticleNum);
     beta=zeros(Time,ParticleNum);
-    new_weight=zeros(1,ParticleNum);
+    new_weight=zeros(2,ParticleNum);
 for t = 2:Time
     
     k=k0*exp(-Ea/(x(2,t-1)*Tr));
@@ -122,14 +122,25 @@ for t = 2:Time
      x_est_out(2,t)=x_est2;
      
      for zz=1:ParticleNum
-          alpha(t,zz)=alpha(t-1)+(x_est1-store_X_p1(t,zz))^2/x_N;
-          beta(t,zz)=(store_X_p1(1,zz)-store_X_p1(1,zz-1)-q/V*(C0-store_X_p1(1,zz))+k*store_X_p1(1,zz));
+         x_est1-store_X_p1(t,zz)
+          alpha(t,zz)=alpha(t-1,zz)+(x_est1-store_X_p1(t,zz))^2/x_R_1;
+          if zz~=1
+          ttttmmmm=store_X_p1(t,zz-1);
+          else
+              ttttmmmm=store_X_p1(t,zz);
+         end
+         beta(t,zz)= store_X_p1(t,zz)-ttttmmmm-0.01*(7.5-store_X_p1(t,zz))+7.86*10^12*store_X_p1(t,zz)*exp(-140.0/3.5);
+           alpha(t,zz)
+           
+%           beta(t,zz)=(store_X_p1(t,zz)-store_X_p1(t,zz)-q/V*(C0-store_X_p1(t,zz))+k*store_X_p1(1,zz));
           new_weight(1,zz)=2/(1+exp(alpha(t,zz)+beta(t,zz)));
      end
-    
-    
-  
-    new_x_est(1:t)=mean(new_particle);
+     new_weight(1,:)=new_weight(1,:)./sum(new_weight(1,:));
+    for i = 1 : ParticleNum
+       eee(i)= x_P(find(rand <= cumsum(new_weight(1,:)),1));
+    end
+  ttttt=mean(eee)
+    new_x_est(1:t)=mean(eee);
     x_est_out(2,t)=x_est2;
     est_error(:,t)=abs(x_est_out(:,t)-no_error(:,t));
 end
