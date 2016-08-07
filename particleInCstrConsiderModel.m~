@@ -27,7 +27,7 @@ x_N_1=0.00001;
 
 x_R = [0.001 0
            0 0.001]; % cov of measurement
-x_R_1=0.01;
+x_R_1=0.001;
 % covirance of initial distribution
 Var=[2 0 
      0  2];
@@ -145,12 +145,12 @@ for t = 2:Time
     new_weight(1,:) = new_weight(1,:)/sum(new_weight(1,:));
 
     for i = 1 : ParticleNum
-        x_PPPPPP(i) = store_X_p1(t,find(rand <= cumsum(new_weight(1,:)),1));
+        x_PPPPPP(i) = store_X_p1(find(rand <= cumsum(P_w1),1));
     end
-   new_x_est(1,t)=mean(x_PPPPPP);
+   
     
 
-    est_error(:,t)=x_est_out(:,t)-new_x_est(:,t);
+    est_error(:,t)=abs(x_est_out(:,t)-no_error(:,t));
 end
 t=1:Time;
 figure(1)
