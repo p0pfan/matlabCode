@@ -21,16 +21,16 @@ dt=1;
 Time=100;
 ParticleNum=100;
 
-x_N = 0.00001; % the cov of process noise
-x_N_1=0.00001;
+x_N = 0.0001; % the cov of process noise
+x_N_1=0.0001;
 
 
-x_R = [0.001 0
-           0 0.001]; % cov of measurement
+x_R = [0.01 0
+           0 0.01]; % cov of measurement
 x_R_1=0.01;
 % covirance of initial distribution
-Var=[2 0 
-     0  2];
+Var=[3 0 
+     0  3];
 
 x_P = zeros(2,ParticleNum); % particle
 x=zeros(2,Time);
@@ -150,7 +150,7 @@ for t = 2:Time
    new_x_est(1,t)=mean(x_PPPPPP);
     
 
-    est_error(:,t)=x_est_out(:,t)-new_x_est(:,t);
+    est_error(:,t)=no_error(:,t)-new_x_est(:,t);
 end
 t=1:Time;
 figure(1)

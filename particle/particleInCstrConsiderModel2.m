@@ -1,0 +1,164 @@
+clear;
+clc;
+q=10;
+V=1000;
+Hr=-27000;
+p=0.001;
+Cp=1;
+U=5*10^(-4);
+Ar=10;
+Tc=3.4;
+k0=7.86*10^12;
+Ea=14090;
+T0=3.5;
+C0=7.5;
+Cr=10^(-6);
+Tr=100;
+C(1)=0.1531*100;
+T(1)=4.6091*100;
+dt=1;
+
+Time=100;
+ParticleNum=100;
+
+x_N = 0.0001; % the cov of process noise
+x_N_1=0.0001;
+
+
+x_R = [0.01 0
+           0 0.01]; % cov of measurement
+x_R_1=0.01;
+% covirance of initial distribution
+Var=[0.01 0 
+     0  0.01];
+
+x_P = zeros(2,ParticleNum); % particle
+x=zeros(2,Time);
+x_out=zeros(2,Time);
+x_est=zeros(2,Time);
+x_est_out=zeros(2,Time);
+
+
+
+x(:,1)=[C(1),T(1)]' ;
+%use Gaussian distribution generate initial particle;
+for i = 1:ParticleNum
+    x_P(:,i) =x(:,1) + sqrt(Var) * [randn,randn]';
+end
+
+
+% 
+z_out(:,1) = x(:,1)+sqrt(x_R)*[randn randn]' ; %get actual measurement
+x_out(:,1) = x(:,1);  %the actual output vector for measurement values.
+x_est(:,1) = x(:,1); % time by time output of the particle filters estimate
+x_est_out(:,1) = x_est(:,1); % the vector of particle filter estimates.
+
+test=zeros(2,Time);
+test_error=zeros(1,Time);
+no_error=zeros(2,Time);
+z_error=zeros(2,Time);
+x_no=zeros(2,Time);
+x_no(:,1)=x(:,1);
+no_error(:,1)=x(:,1);
+test(:,1)=x(:,1);
+z_error(:,1)=x(:,1);
+est_error=zeros(2,Time);
+
+store_X_p1=zeros(Time,ParticleNum);
+store_X_p2=zeros(Time,ParticleNum);
+
+new_x_est=zeros(2,Time);
+new_x_est(1,1)=x(1,1);
+
+ alpha1=zeros(Time,ParticleNum);
+ alpha2=zeros(Time,ParticleNum);
+ beta1=zeros(Time,ParticleNum);
+ beta2=zeros(Time,ParticleNum);
+
+ new_weight=zeros(2,ParticleNum);
+ 
+for t = 2:Time
+    
+    k=k0*exp(-Ea/(x(2,t-1)*Tr));
+    
+    k_no=k0*exp(-Ea/(x_no(2,t-1)*Tr));
+    
+    process_error1=sqrt(x_N_1)*randn;
+    process_error2=sqrt(x_N_1)*randn;
+    
+    x(1,t)=x(1,t-1)+dt*(  q/V*(C0-x(1,t-1))-k*x(1,t-1)    )+process_error1;
+    x(2,t)=x(2,t-1)+dt*(   q/V*(T0-x(2,t-1))-Hr*Cr*k*x(1,t-1) /(p*Cp*Tr)-U*Ar*(x(2,t-1)-Tc)/(p*Cp*V)   )+process_error2;
+    
+    x_no(1,t)=x_no(1,t-1)+dt*(  q/V*(C0-x_no(1,t-1))-k_no*x_no(1,t-1)    );
+    x_no(2,t)=x_no(2,t-1)+dt*(   q/V*(T0-x_no(2,t-1))-Hr*Cr*k_no*x_no(1,t-1) /(p*Cp*Tr)-U*Ar*(x_no(2,t-1)-Tc)/(p*Cp*V)   );
+    
+%     x(1,1)=x(1,1)+dt*(  q/V*(C0-x(1,1))-k*x(1,1)    )+tt;
+%     x(2,1)=x(2,1)+dt*(   q/V*(T0-x(2,1))-Hr*Cr*k*x(1,1) /(p*Cp*Tr)-U*Ar*(x(2,1)-Tc)/(p*Cp*V)   )+sqrt(x_N_1)*randn;
+    no_error(1,t)=x_no(1,t);
+    no_error(2,t)=x_no(2,t);
+    z_out(:,t)=x(:,t)+sqrt(x_R)*[randn randn]';
+    
+  
+    
+     for i = 1:ParticleNum
+        k_particle=k0*exp(-Ea/(x_P(2,i)*Tr));
+        x_P_update1(i) = x_P(1,i)+dt*(  q/V*(C0-x_P(1,i))-k*x_P(1,i)    )+sqrt(x_N_1)*randn;
+         x_P_update2(i)=x_P(2,i)+dt*(   q/V*(T0-x_P(2,i))-Hr*Cr*k*x_P(1,i) /(p*Cp*Tr)-U*Ar*(x_P(2,i)-Tc)/(p*Cp*V)   )+sqrt(x_N_1)*randn;;
+        z_update1(i) = x_P_update1(i);
+          z_update2(i) = x_P_update2(i);
+        P_w1(i) = (1/sqrt(2*pi*x_R_1)) * exp(-(z_out(1,t) - z_update1(i))^2/(2*x_R_1));
+         P_w2(i) = (1/sqrt(2*pi*x_R_1)) * exp(-(z_out(2,t) - z_update2(i))^2/(2*x_R_1));
+     end
+    P_w1 = P_w1./sum(P_w1);
+    P_w2 = P_w2./sum(P_w2);
+    for i = 1 : ParticleNum
+        x_P(1,i) = x_P_update1(find(rand <= cumsum(P_w1),1));
+        x_P(2,i) = x_P_update2(find(rand <= cumsum(P_w2),1)); 
+    end
+    store_X_p1(t,:)=x_P(1,:);
+    store_X_p2(t,:)=x_P(2,:);
+
+    
+    x_est1 = mean(x_P(1,:));
+    x_est2 = mean(x_P(2,:));
+    
+    x_est_out(1,t)=x_est1;
+    x_est_out(2,t)=x_est2;
+     
+    
+    for PP=1:ParticleNum
+        
+        
+        alpha1(t,PP)=alpha1(t-1,PP)+(store_X_p1(t,PP)-x_est1)^2/x_R_1;
+        alpha2(t,PP)=alpha2(t-1,PP)+(store_X_p2(t,PP)-x_est2)^2/x_R_1;
+
+       
+
+        beta1(t,PP)=store_X_p1(t,PP)-x_est_out(1,t-1)-0.01*(7.5-store_X_p1(t,PP))+7.86*10^12*exp(-140.9/store_X_p2(t,PP));
+        beta2(t,PP)=store_X_p2(t,PP)-x_est_out(2,t-1)-0.01*(3.5-store_X_p2(t,PP))-2.1222*10^12*store_X_p1(t,PP)*exp(-140.9/store_X_p2(t,PP))+5*10^-3*(store_X_p2(t,PP)-3.4);
+        
+        new_weight(1,PP)=2/(1+exp(alpha1(t,PP)+beta1(t,PP)));
+         new_weight(2,PP)=2/(1+exp(alpha2(t,PP)+beta2(t,PP)));
+    end
+    new_weight(1,:) = new_weight(1,:)/sum(new_weight(1,:));
+     new_weight(2,:) = new_weight(2,:)/sum(new_weight(2,:));
+
+    for i = 1 : ParticleNum
+        x_PPPPPP(i) = store_X_p1(t,find(rand <= cumsum(new_weight(1,:)),1));
+        x_PPPPPP2(i) = store_X_p2(t,find(rand <= cumsum(new_weight(2,:)),1));
+    end
+   new_x_est(1,t)=mean(x_PPPPPP);
+   new_x_est(2,t)=mean(x_PPPPPP2);
+    x(1,t)=mean(x_PPPPPP);
+    x(2,t)=mean(x_PPPPPP2);
+    est_error(:,t)=x_est_out(:,t)-new_x_est(:,t);
+end
+t=2:Time;
+figure(1)
+%  ,t,x_est_out(1,1:Time),'.-g'
+plot( t, no_error(1,t),'-r',t,new_x_est(1,t));
+figure(2)
+plot( t, no_error(2,t),'-r',t,new_x_est(2,t),'.-g');
+figure(3)
+plot(t,  est_error(1,1:Time), '.-b');
+% , t, x_est_out, '-.r',  t, test(2,1:Time),'-y
