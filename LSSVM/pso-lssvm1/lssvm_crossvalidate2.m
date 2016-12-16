@@ -40,10 +40,10 @@ function [train_predict, model ]= lssvm_crossvalidate(train,train_out,test,test_
 %     22500 0.212 0.2 0.2 847.8];
 % test_out = [3.8237 2.9526 3.3824 2.8132 2.1938 2.816 3.0887];
 %%归一化方法（利用mapminmax函数归一化）
-train = train';
-train_out = train_out';
-test = test';
-test_out = test_out';
+% train = train';
+% train_out = train_out';
+% test = test';
+% test_out = test_out';
 [train_data,pstrain0] = mapminmax(train',0,1);
 [test_data] = mapminmax('apply',test',pstrain0);
 [train_result,pstrain1] = mapminmax(train_out,0,1);
@@ -57,17 +57,17 @@ size(train_data)
 size(test_data)
 %% 建立lssvm模型
 type='f'
-% gam=75;
-gam=[75 10];
-% sig2=10;
-sig2=[0.45 5];
+gam=75;
+% gam=[75 50];
+sig2=10;
+% sig2=[0.45 0.45];
 kernel = 'RBF_kernel'
 proprecess='function estimation'
 model=initlssvm(train_data,train_result,type,gam,sig2,kernel,proprecess);
 % 交叉验证优化参数
 costfun = 'crossvalidatelssvm';
 costfun_args = {5,'mse'};  % the value should be an interger
-optfun = 'simplex';
+optfun = 'gridsearch';
 model = tunelssvm(model,optfun,costfun,costfun_args);   % 模型参数优化
 model=trainlssvm(model)
 %求出训练集和测试集的预测值

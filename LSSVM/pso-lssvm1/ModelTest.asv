@@ -1,0 +1,15 @@
+function ModelTest(model, train, input) 
+    sigma = model.kernel_pars
+    b = model.b
+    alpha = model.alpha
+    train
+    
+    for i = 1: 6
+        kernal_matrix(i,1) =exp(-( sum((input - train(1:8 , i)').^2)/(2*sigma)));
+       
+    end
+%     
+% %      kernal_matrix_size = size( kernal_matrix(i,1) )
+%     output = alpha' * kernal_matrix + b;
+    
+end
