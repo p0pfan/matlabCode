@@ -1,6 +1,7 @@
 clc
 clear all
    
+out__ = '************************************************************'
 A_0_init = 6.5;
 A_0_init1 = 7.5;
 A_std = 0.0575;
@@ -107,7 +108,7 @@ for i = 10 :5: tt
 
     
 %%%%
-%%%%%%optimization
+%%%%%%optimization'
  xx_measurement = train_predict(1,:);
     yy_measurement= train_predict(2,:);
     if (i - 10) == 0
@@ -122,8 +123,10 @@ for i = 10 :5: tt
      T_sys_input = T_input(i - mm -nn :i,1);
     
 
-    A_init_matrix = [ones(1,6) ones(1,6)*0 ]';
-    T_init_matrix = [ones(1,6) ones(1,6)*0 ]';
+    A_init_matrix = xx_measurement;
+     
+    
+    T_init_matrix = [ones(1,6)*5 ];
     
     
     A_model.alpha = model.alpha(:,1);
@@ -133,27 +136,34 @@ for i = 10 :5: tt
     
   
     
-   T_model.alpha = model.alpha(:,2);
-T_model.b = model.b(:,2);
-T_model.sigma = model.gam(:,2);
-T_model.input_dim = 8;
-
-
-    
-
-    Y1 =  fsolve(@(Y1)lagrange_multiplier_mimo(Y1,xx_measurement,A_std,A_init_opt_value, ...
-        A_sys_input,A_model,x_train_sample),A_init_matrix,optimset('display','off','Algorithm ','levenberg-marquardt'))
-
-     fval1 = lagrange_multiplier_mimo(Y1,xx_measurement,A_std,A_init_opt_value, ... 
-         A_sys_input,A_model,x_train_sample)
-     A_reconciliation_value(i-5:i) = Y1(1 : 6);
+    T_model.alpha = model.alpha(:,2);
+    T_model.b = model.b(:,2);
+    T_model.sigma = model.gam(:,2);
+    T_model.input_dim = 8;
+% 'Algorithm','sqp'
+%,'GradObj','on'
+% 'LargeScale','on', 
+   A = eye(6)*-1;
+    b = zeros(6,1);
+    options = optimset('display','off','Algorithm','levenberg-marquardt');
+   [y]= fmincon(@(y)optimization_func(y,xx_measurement,A_std),A_init_matrix,A,b,[],[],[],[],@(y)nonlcons_mimo_fmincon(y,A_init_opt_value,A_sys_input,A_model,x_train_sample),options)
+     A_reconciliation_value(i-5:i) = y(1 : 6);
+     
+     [y1]= fmincon(@(y1)optimization_func(y1,yy_measurement,T_std),T_init_matrix,A,b,[],[],[],[],@(y1)nonlcons_mimo_fmincon(y1,T_init_opt_value,T_sys_input,T_model,y_train_sample),options)
+     T_reconciliation_value(i-5:i) = y1(1 : 6);
+%     [Y1,fval,exitflag] =  lsqnonlin(@(Y1)lagrange_multiplier_mimo(Y1,xx_measurement,A_std,A_init_opt_value, ...
+%         A_sys_input,A_model,x_train_sample),A_init_matrix,[],[],optimset('display','off','LargeScale','on','Algorithm', 'levenberg-marquardt'))
+% 
+%      fval1 = lagrange_multiplier_mimo(Y1,xx_measurement,A_std,A_init_opt_value, ... 
+%          A_sys_input,A_model,x_train_sample)
+%      A_reconciliation_value(i-5:i) = Y1(1 : 6);
      
 %      alpha,b,sigma,input_dim
-     Y2 = fsolve(@(Y2)lagrange_multiplier_mimo(Y2,yy_measurement,T_std,T_init_opt_value,...
-         T_sys_input,T_model,y_train_sample),T_init_matrix,optimset('display','off','Algorithm ','levenberg-marquardt'))
-     fval2 = lagrange_multiplier_mimo(Y2,yy_measurement,T_std,T_init_opt_value,T_sys_input, ... 
-         T_model,y_train_sample)
-     T_reconciliation_value(i-5:i) = Y2(1 : 6);
+%      Y2 = fsolve(@(Y2)lagrange_multiplier_mimo(Y2,yy_measurement,T_std,T_init_opt_value,...
+%          T_sys_input,T_model,y_train_sample),T_init_matrix,optimset('display','off','Algorithm ','levenberg-marquardt'))
+%      fval2 = lagrange_multiplier_mimo(Y2,yy_measurement,T_std,T_init_opt_value,T_sys_input, ... 
+%          T_model,y_train_sample)
+%      T_reconciliation_value(i-5:i) = Y2(1 : 6);
 
 
 
