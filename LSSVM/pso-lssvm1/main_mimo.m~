@@ -4,7 +4,7 @@ clear all
 out__ = '************************************************************'
 A_0_init = 6.5;
 A_0_init1 = 7.5;
-A_std = 0.0275;
+A_std = 0.0575;
 T_std = 0.0592;
 sample_time = 200;
 
@@ -111,9 +111,8 @@ for i = 10 :5: tt
     
 %%%%
 %%%%%%optimization'
-    xx_measurement = train_predict(1,:);
-    beforeRecon(i-4:i, 1) = xx_measurement(1,2:end)';
-    
+ xx_measurement = train_predict(1,:);
+ 
     yy_measurement= train_predict(2,:);
     if (i - 10) == 0
        
@@ -174,7 +173,7 @@ for i = 10 :5: tt
     
 end
 figure(1)
-plot([1:tt],truevalue(1:tt,1),'r-',[1:tt],beforeRecon(1:tt,1),'+',[1:tt],A_reconciliation_value(1:tt,1),'b',[1:tt],A_measurement(1:tt,1),'g');
+plot([1:tt],truevalue(1:tt,1),'r-',[1:tt],A_reconciliation_value(1:tt,1),'b',[1:tt],A_measurement(1:tt,1),'g');
 
 figure(2)
 plot([1:tt],truevalue(1:tt,2),'r-',[1:tt],T_reconciliation_value(1:tt,1),'b',[1:tt],T_measurement(1:tt,1),'g');
