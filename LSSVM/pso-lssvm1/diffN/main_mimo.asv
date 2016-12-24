@@ -6,6 +6,7 @@ A_0_init = 6.5;
 A_0_init1 = 7.5;
 A_std = 0.0275;
 T_std = 0.0592;
+
 sample_time = 200;
 
 A_input = [ones(30,1) * A_0_init ; 
@@ -39,12 +40,9 @@ mm = 5;
 nn = 2;
 tt = sample_time;
 tt =100;
-% for i = 10 :5: tt
-for i = 10 :tt
-    if(i ==20)
-        ddd =   0;
-    end
-    %%%%
+for i = 10 :5: tt
+% for i = 10 :tt
+  
     x_train_sample = zeros(6,8);
     y_train_sample = zeros(6,8);
     s = 0;
