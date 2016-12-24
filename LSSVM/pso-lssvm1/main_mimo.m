@@ -39,8 +39,10 @@ mm = 5;
 nn = 2;
 tt = sample_time;
 tt =100;
-% for i = 10 :5: tt
-for i = 10 :tt
+
+beforeRecon = zeros(100,1);
+for i = 10 :5: tt
+% for i = 10 :tt
     if(i ==20)
         ddd =   0;
     end
@@ -110,7 +112,7 @@ for i = 10 :tt
 %%%%
 %%%%%%optimization'
     xx_measurement = train_predict(1,:);
-    yy_measurement= train_predict(2,:);
+    beforeRecon(i-4:i, 1) = xx_measurement(1,2:end)';    yy_measurement= train_predict(2,:);
     if (i - 10) == 0
        
         A_init_opt_value = [A_recon0 ; A_reconciliation_value(1:i - 5 - 1,1)];
@@ -143,10 +145,6 @@ for i = 10 :tt
 % 'Algorithm','sqp'
 %,'GradObj','on'
 % 'LargeScale','on', 
-%    A = eye(6)*-1;
-%     b = ones(6,1)*min(xx_measurement)
-    options = optimset('display','off','Algorithm','interior-point');
-   [y]= fmincon(@(y)optimization_func(y,A_measurement(i-5:i,1)',A_std),A_init_matrix,[],[],[],[],ones(6,1)*max(xx_measurement)-0.1,ones(6,1)*max(xx_measurement),@(y)nonlcons_mimo_fmincon(y,A_init_opt_value,A_sys_input,A_model,x_train_sample),options)
      A_reconciliation_value(i-5:i) = y(1 : 6);
      
      [y1]= fmincon(@(y1)optimization_func(y1,T_measurement(i-5:i,1)',T_std),T_init_matrix,[],[],[],[],ones(6,1)*min(yy_measurement),ones(6,1)*max(yy_measurement),@(y1)nonlcons_mimo_fmincon(y1,T_init_opt_value,T_sys_input,T_model,y_train_sample),options)
@@ -170,7 +168,7 @@ for i = 10 :tt
     
 end
 figure(1)
-plot([1:tt],truevalue(1:tt,1),'r-',[1:tt],A_reconciliation_value(1:tt,1),'b',[1:tt],A_measurement(1:tt,1),'g');
+plot([1:tt],truevalue(1:tt,1),'r-',[1:tt],beforeRecon(1:tt,1),'+',[1:tt],A_reconciliation_value(1:tt,1),'b',[1:tt],A_measurement(1:tt,1),'g');
 
 figure(2)
 plot([1:tt],truevalue(1:tt,2),'r-',[1:tt],T_reconciliation_value(1:tt,1),'b',[1:tt],T_measurement(1:tt,1),'g');
