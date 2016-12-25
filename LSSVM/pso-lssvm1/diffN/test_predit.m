@@ -11,8 +11,8 @@ function [predict, predict_out ]= train_predit(A_predict_in,T_predict_in,A_input
     
     A_test = [x6];
     T_test = [y6];
-    A_test_out = A_measure';
-    T_test_out = T_measure';
+    A_test_out = A_measure(1,1);
+    T_test_out = T_measure(1,1);
     
     predict = [A_test T_test]';
 
